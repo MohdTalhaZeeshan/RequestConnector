@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6e6236af-9528-4149-98a1-f7cc9718e38b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="7aeba3e1-ef54-45fa-aab4-7be5f86c295e">
+		<http:request-connection host="localhost" port="8082" />
+	</http:request-config>
+	<flow name="demoFlow" doc:id="55805200-094a-453f-a283-7bc6df23e0de" >
+		<http:listener doc:name="Listener" doc:id="a5c227e1-f396-4440-8a80-bfb0df74f39d" config-ref="HTTP_Listener_config" path="/test"/>
+		<set-variable value='#[correlationId replace                      &#10;"-"&#10;with&#10;""]' doc:name="Set Variable" doc:id="7c12708a-cceb-4ec6-a822-538adb7d8c13" variableName="correlationid"/>
+		<http:request method="GET" doc:name="Request" doc:id="6e991171-8e3c-4287-85fd-098bf453183b" config-ref="HTTP_Request_configuration" path="/get">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"correlationid" : vars.correlationid
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="3a8f93cd-5402-49dd-b5d2-92426aa40ca8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
